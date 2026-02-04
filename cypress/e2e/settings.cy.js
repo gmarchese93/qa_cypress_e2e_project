@@ -1,5 +1,5 @@
-/// <reference types='cypress' />
-/// <reference types='../support' />
+/// <reference types="cypress" />
+/// <reference types="../support" />
 
 import HomePageObject from '../support/pages/home.pageObject';
 import SignInPageObject from '../support/pages/signIn.pageObject';
@@ -12,84 +12,98 @@ describe('Settings page', () => {
 
   before(() => {
     cy.task('db:clear');
-    cy.task('generateUser').then((generateUser) => {
-      user = generateUser;
+    cy.task('generateUser').then((generatedUser) => {
+      user = generatedUser;
       cy.register(user.email, user.username, user.password);
     });
   });
 
   beforeEach(() => {
     signInPage.visit();
-
     signInPage.typeEmail(user.email);
     signInPage.typePassword(user.password);
     signInPage.clickSignInBtn();
-  });
-
-  it('should provide an ability to log in with existing credentials', () => {
     homePage.assertHeaderContainUsername(user.username);
   });
 
-  it('should provide an ability to update username', () => {
+  it('should update username', () => {
     homePage.usernameLink.click();
-    cy.contains('a', 'Edit Profile Settings').click();
+    cy.getByDataQa('edit-profile').click();
 
-    cy.get('input[placeholder="Your username"]').clear();
-    cy.get('input[placeholder="Your username"]').type(user.username + '123');
+    const newUsername = `${user.username}123`;
 
-    cy.contains('button', 'Update Settings').click();
+    cy.getByDataQa('settings-username')
+      .clear()
+      .type(newUsername);
 
-    homePage.visit();
-    cy.contains('a[data-cy="username-link"]', user.username + '123');
+    cy.getByDataQa('update-settings').click();
+
+    homePage.assertHeaderContainUsername(newUsername);
+    user.username = newUsername;
   });
 
-  it('should provide an ability to update bio', () => {
+  it('should update bio', () => {
     homePage.usernameLink.click();
-    cy.contains('a', 'Edit Profile Settings').click();
+    cy.getByDataQa('edit-profile').click();
 
-    cy.get('textarea[placeholder="Short bio about you"]').clear();
-    cy.get('textarea[placeholder="Short bio about you"]').type(
-      'Just a bio about something'
-    );
+    cy.getByDataQa('settings-bio')
+      .clear()
+      .type('Just a bio about something');
 
-    cy.contains('button', 'Update Settings').click();
-
-    // eslint-disable-next-line cypress/no-unnecessary-waiting
-    cy.wait(1000);
+    cy.getByDataQa('update-settings').click();
 
     cy.visit(`/#/@${user.username}`);
-    cy.contains('p', 'Just a bio about something').should('be.visible');
+    cy.getByDataQa('user-bio')
+      .should('contain', 'Just a bio about something');
   });
 
-  it('should provide an ability to update an email', () => {
+  it('should update email', () => {
+    const newEmail = 'myemail@gmail.test';
+
     homePage.usernameLink.click();
-    cy.contains('a', 'Edit Profile Settings').click();
+    cy.getByDataQa('edit-profile').click();
 
-    cy.get('input[placeholder="Email"]').clear();
-    cy.get('input[placeholder="Email"]').type(
-      'myemail@gmail.test'
-    );
+    cy.getByDataQa('settings-email')
+      .clear()
+      .type(newEmail);
 
-    cy.contains('button', 'Update Settings').click();
+    cy.getByDataQa('update-settings').click();
+
+    homePage.usernameLink.click();
+    cy.getByDataQa('edit-profile').click();
+    cy.getByDataQa('settings-email')
+      .should('have.value', newEmail);
+
+    user.email = newEmail;
   });
 
-  it('should provide an ability to update password', () => {
+  it('should update password', () => {
+    const newPassword = '1234TestPass';
+
     homePage.usernameLink.click();
-    cy.contains('a', 'Edit Profile Settings').click();
+    cy.getByDataQa('edit-profile').click();
 
-    cy.get('input[placeholder="Password"]').clear();
-    cy.get('input[placeholder="Password"]').type(
-      '1234TestPass'
-    );
+    cy.getByDataQa('settings-password')
+      .clear()
+      .type(newPassword);
 
-    cy.contains('button', 'Update Settings').click();
+    cy.getByDataQa('update-settings').click();
+
+    cy.getByDataQa('logout').click();
+
+    signInPage.typeEmail(user.email);
+    signInPage.typePassword(newPassword);
+    signInPage.clickSignInBtn();
+
+    homePage.assertHeaderContainUsername(user.username);
+    user.password = newPassword;
   });
 
-  it('should provide an ability to log out', () => {
+  it('should log out', () => {
     homePage.usernameLink.click();
-    cy.contains('a', 'Edit Profile Settings').click();
+    cy.getByDataQa('edit-profile').click();
 
-    cy.get('.btn-outline-danger').click();
+    cy.getByDataQa('logout').click();
 
     homePage.usernameLink.should('not.exist');
   });

@@ -1,43 +1,47 @@
-/// <reference types='cypress' />
-/// <reference types='../support' />
+/// <reference types="cypress" />
+/// <reference types="../support" />
 
 import SignInPageObject from '../support/pages/signIn.pageObject';
 
 const signInPage = new SignInPageObject();
 
-describe('User', () => {
+describe('User follow flow', () => {
   let userTarget;
   let userFollower;
 
   before(() => {
     cy.task('db:clear');
-    cy.task('generateUser').then((generateUser) => {
-      userTarget = generateUser;
-      cy.register(userTarget.email, userTarget.username, userTarget.password);
-      userFollower = generateUser;
-      userFollower.email += 'world';
-      userFollower.username += 'follower';
-      cy.register(
-        userFollower.email,
-        userFollower.username,
-        userFollower.password
-      );
+
+    cy.task('generateUser').then((u1) => {
+      userTarget = u1;
+      cy.register(u1.email, u1.username, u1.password);
+    });
+
+    cy.task('generateUser').then((u2) => {
+      userFollower = u2;
+      cy.register(u2.email, u2.username, u2.password);
     });
   });
 
-  it('should be able to follow the another user', () => {
+  it('should follow and unfollow another user', () => {
     signInPage.visit();
-
     signInPage.typeEmail(userFollower.email);
     signInPage.typePassword(userFollower.password);
-
     signInPage.clickSignInBtn();
 
-    // eslint-disable-next-line cypress/no-unnecessary-waiting
-    cy.wait(1000);
+    cy.visit(`/#/@${userTarget.username}`);
 
-    cy.visit(`/#/@${userTarget.username.replace('follower', '')}`);
+    cy.getByDataQa('follow-btn')
+      .should('contain', 'Follow')
+      .click();
 
-    cy.contains('button', `Follow ${userTarget.username.replace('follower', '')}`).click();
+    cy.getByDataQa('follow-btn')
+      .should('contain', 'Unfollow');
+
+    cy.getByDataQa('follow-btn')
+      .click();
+
+    cy.getByDataQa('follow-btn')
+      .should('contain', 'Follow');
   });
 });
