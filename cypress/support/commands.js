@@ -8,7 +8,7 @@ Cypress.Commands.add('getByDataQa', (selector) => {
 
 Cypress.Commands.add(
   'register',
-  (email = 'riot@qa.team', username = 'riot', password = '12345Qwert!') => {
+  (email, username, password) => {
     return cy.request('POST', '/users', {
       email,
       username,

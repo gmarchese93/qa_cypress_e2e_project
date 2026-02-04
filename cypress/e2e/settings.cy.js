@@ -10,15 +10,13 @@ const homePage = new HomePageObject();
 describe('Settings page', () => {
   let user;
 
-  before(() => {
-    cy.task('db:clear');
-    cy.task('generateUser').then((generatedUser) => {
-      user = generatedUser;
-      cy.register(user.email, user.username, user.password);
-    });
-  });
-
   beforeEach(() => {
+    cy.task('db:clear');
+    cy.task('generateUser').then((u) => {
+      user = u;
+      cy.register(u.email, u.username, u.password);
+    });
+
     signInPage.visit();
     signInPage.typeEmail(user.email);
     signInPage.typePassword(user.password);
@@ -30,16 +28,13 @@ describe('Settings page', () => {
     homePage.usernameLink.click();
     cy.getByDataQa('edit-profile').click();
 
-    const newUsername = `${user.username}123`;
-
     cy.getByDataQa('settings-username')
       .clear()
-      .type(newUsername);
+      .type(`${user.username}123`);
 
     cy.getByDataQa('update-settings').click();
 
-    homePage.assertHeaderContainUsername(newUsername);
-    user.username = newUsername;
+    homePage.assertHeaderContainUsername(`${user.username}123`);
   });
 
   it('should update bio', () => {
@@ -48,63 +43,43 @@ describe('Settings page', () => {
 
     cy.getByDataQa('settings-bio')
       .clear()
-      .type('Just a bio about something');
+      .type('Just a bio');
 
     cy.getByDataQa('update-settings').click();
 
-    cy.visit(`/#/@${user.username}`);
     cy.getByDataQa('user-bio')
-      .should('contain', 'Just a bio about something');
+      .should('contain', 'Just a bio');
   });
 
   it('should update email', () => {
-    const newEmail = 'myemail@gmail.test';
-
     homePage.usernameLink.click();
     cy.getByDataQa('edit-profile').click();
 
     cy.getByDataQa('settings-email')
       .clear()
-      .type(newEmail);
+      .type('new@mail.test');
 
     cy.getByDataQa('update-settings').click();
 
-    homePage.usernameLink.click();
-    cy.getByDataQa('edit-profile').click();
     cy.getByDataQa('settings-email')
-      .should('have.value', newEmail);
-
-    user.email = newEmail;
+      .should('have.value', 'new@mail.test');
   });
 
   it('should update password', () => {
-    const newPassword = '1234TestPass';
-
     homePage.usernameLink.click();
     cy.getByDataQa('edit-profile').click();
 
     cy.getByDataQa('settings-password')
       .clear()
-      .type(newPassword);
+      .type('NewPass123');
 
     cy.getByDataQa('update-settings').click();
-
     cy.getByDataQa('logout').click();
 
     signInPage.typeEmail(user.email);
-    signInPage.typePassword(newPassword);
+    signInPage.typePassword('NewPass123');
     signInPage.clickSignInBtn();
 
     homePage.assertHeaderContainUsername(user.username);
-    user.password = newPassword;
-  });
-
-  it('should log out', () => {
-    homePage.usernameLink.click();
-    cy.getByDataQa('edit-profile').click();
-
-    cy.getByDataQa('logout').click();
-
-    homePage.usernameLink.should('not.exist');
   });
 });

@@ -19,8 +19,16 @@ class ArticlePageObject extends PageObject {
     return cy.getByDataQa('article-tags');
   }
 
-  get publishArticleBtn() {
+  get publishBtn() {
     return cy.getByDataQa('publish-article');
+  }
+
+  get editBtn() {
+    return cy.getByDataQa('edit-article');
+  }
+
+  get deleteBtn() {
+    return cy.getByDataQa('delete-article');
   }
 
   typeTitle(title) {
@@ -40,7 +48,7 @@ class ArticlePageObject extends PageObject {
   }
 
   clickPublishArticleBtn() {
-    this.publishArticleBtn.click();
+    this.publishBtn.click();
   }
 }
 

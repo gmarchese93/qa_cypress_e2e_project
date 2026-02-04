@@ -1,7 +1,7 @@
 /// <reference types="cypress" />
 
 declare namespace Cypress {
-  interface Chainable<Subject> {
+  interface Chainable {
     getByDataQa(selector: string): Chainable<any>;
     register(
       email: string,
